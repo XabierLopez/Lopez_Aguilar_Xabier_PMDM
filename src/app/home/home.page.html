@@ -3,8 +3,8 @@
 <ion-content [fullscreen]="true">
   <!-- Leer todas las preguntas del cuestionario-->
   <ion-list>
-    <ion-item>
-      <img src="../../assets/icon/volkswagen.jpg">
+    <!-- <ion-item> -->
+      <!-- <img src="../../assets/icon/volkswagen.jpg"> -->
       <!-- Añadir ion-badge para el caso de acertar la respuesta, contador de intentos y mostrar todos los intentos incorrectos
       -- 1-Si se acierta: Poner color success y mostrarlo a la derecha de la página (ver-> slot)
       -- 2-Si se falla: Poner color danger y mostrarlo a la derecha de la página (ver-> slot)
@@ -12,10 +12,10 @@
       -->
 
       <!-- Añadir botón para responder mediante un-->
-      <ion-button slot="end">ERANTZUN</ion-button>
-    </ion-item>
+      <!-- <ion-button slot="end" (click)="erantzunAlerta(erantzuna)">ERANTZUN</ion-button> -->
+    <!-- </ion-item> -->
     
-    <ion-item>
+    <!-- <ion-item>
       <img src="../../assets/icon/apple.jpg">
 
       <ion-button slot="end">ERANTZUN</ion-button>
@@ -31,11 +31,28 @@
       <img src="../../assets/icon/starbucks.jpg">
 
       <ion-button slot="end">ERANTZUN</ion-button>
+    </ion-item> -->
+
+    <ion-item *ngFor="let galdera of galderak">
+      <img [src]=galdera.logotipo>
+      <ion-badge *ngIf="galdera.acierto" color="success" slot="end">
+        {{galdera.logotipo}} 
+        <!-- falta da rutareren prefijoa kentzea -->
+      </ion-badge>
+      <ion-badge *ngIf="!galdera.acierto && galdera.intentos > 0" color="danger" slot="end">
+        -{{galdera.intentos}}
+      </ion-badge>
+      <ion-badge *ngFor="let intento of galdera.respuestasIncorrectas" color="warning" slot="end">
+        {{ intento }}
+      </ion-badge>
+      <ion-button slot="end" (click)="erantzunAlerta(galdera)">
+        ERANTZUN
+      </ion-button>
     </ion-item>
   </ion-list>
   <!--Botón de guardar el cuestionario-->
   <div class="zentratua">
-    <ion-button>GALDETEGIA GORDE</ion-button>
+    <ion-button (click)="galdetegiaGorde()">GALDETEGIA GORDE</ion-button>
   </div>
   
 </ion-content>

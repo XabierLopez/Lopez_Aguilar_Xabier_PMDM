@@ -3,7 +3,7 @@ import { AlertController } from '@ionic/angular';
 import { IPregunta } from './../interfaces/interfaces';
 import { Observable, of } from 'rxjs';
 import { GestionStorageService } from './gestion-storage.service';
-import { Injectable } from '@angular/core';
+import { Injectable, input } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +12,7 @@ export class CuestionarioService {
   // Array para almacenar todas las preguntas del json. Recordad inicializar el array para evitar problemas
   galderak: IPregunta[] = [];
   //Añadir los componentes y servicios que se necesitan
-  constructor(private http: HttpClient, private gestionStorage: GestionStorageService) {
+  constructor(private http: HttpClient, private gestionStorage: GestionStorageService, private alertController: AlertController) {
     //Cargar los datos
   }
 
@@ -29,17 +29,17 @@ export class CuestionarioService {
       this.galderak=galderakStorage;
     }else{
       this.jsonetikIrakurriGalderak().subscribe(irakurritakoGalderak => {
-        this.galderak=irakurritakoGalderak.map(galdera => {
-          return {
-            ...galdera, // jsonean bai dauden propietateak kopiatu
-            // gainerako propietateak bete hutsik
-            respuestasIncorrectas: [],
-            intentos: 0,
-            acierto: false
-          }
-        })
-      })
+      this.galderak = irakurritakoGalderak.map(galdera => ({
+        ...galdera, // jsonean bai dauden propietateak kopiatu
+        //besteak hutsik baina inizializatu behar dira, aukerazkoak ez direlako
+        respuestasIncorrectas: [],
+        intentos: 0,
+        acierto: false
+      }));
+
       this.galderakStoragenGorde();
+      console.log('galderak jsonetik', this.galderak);
+    });
     }
   }
 
@@ -54,6 +54,42 @@ export class CuestionarioService {
   // 2.1- Restará el valor de los intentos
   // 2.2- Guardará el valor añadido en el array respuestasIncorrectas
 
+  async erantzunAlerta(galdera: IPregunta){
+    const alert = await this.alertController.create({
+      header: 'Zer markako logotipoa da hau?',
+      inputs: [
+        {
+          name: 'erantzuna',
+          type: 'text',
+          label: 'Ortografiarekin kontuz'
+        }
+      ],
+      buttons: [
+        {
+          text:'Bidali',
+          handler: (data) => {
+            const erantzuna = data.erantzuna?.trim(); // ? operadorearen bidez erantzuna hutsik badago null bueltatu eta trim ez egin, bestela errorea
+
+            if (!erantzuna) {
+              return false; // false bueltatzean alerta ez da itxiko
+            }
+
+            if (erantzuna.toLowerCase() === galdera.respuesta.toLowerCase()) {
+              galdera.acierto = true;
+            } else {
+              galdera.intentos++;
+              galdera.respuestasIncorrectas.push(erantzuna);
+            }
+
+          
+            return true; // handlerrek jakiteko alerta itxi behar dela
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
 
   // Almacenar el array de preguntas en Storage
   galderakStoragenGorde(){
